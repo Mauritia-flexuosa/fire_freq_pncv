@@ -1,0 +1,52 @@
+rm(list=ls())
+setwd("/home/marcio/Documentos/data/fogo")
+
+library(sp)
+library(raster)
+library(tidyverse)
+library(leaflet)
+
+
+x <- c(-47.75014, -47.74389, -47.76830, -47.72287, -47.73264, -47.73613, -47.68317,
+       -47.66713, -47.69987, -47.70263, -47.76707, -47.71484, -47.71418, -47.67871,
+       -47.67911, -47.68465, -47.63446, -47.63412, -47.63415, -47.69065, -46.97297,
+       -46.98341, -46.98311, -46.98177, -47.84833, -47.84950, -47.84347, -46.97983,
+       -46.98513, -46.98280)#, -47.63719, -47.63690, -47.63657, -47.63625, -47.63551,
+       #-47.63513, -47.63479, -47.63447, -47.63412, -47.63376, -47.63497, -47.63472,
+       #-47.63449, -47.63425, -47.63398, -47.63376, -47.63349, -47.63340, -47.63323,
+       #-47.63333)
+y <- c(-14.14786, -14.14263, -14.13991, -14.13116, -14.12362, -14.12612, -14.12855,
+       -14.12713, -14.12875, -14.12913, -14.13310, -14.13943, -14.13980, -14.11648,
+       -14.11652, -14.11530, -14.09114, -14.09050, -14.08997, -14.12734, -13.92030,
+       -13.88963, -13.88625, -13.88888, -14.20525, -14.20966, -14.20466, -13.89772,
+       -13.88366, -13.88300)#, -14.10703, -14.10691, -14.10672, -14.10647, -14.10615,
+       #-14.10608, -14.10588, -14.10573, -14.10555, -14.10556, -14.09398, -14.09369,
+       #-14.09341, -14.09310, -14.09275, -14.09240, -14.09212, -14.09177, -14.09145,
+       #-14.09123)
+       
+`Vegetation type` <- c(rep("savanna", 10), rep("gallery forest", 10), rep("dry forest", 10)) %>% factor
+parcelas <- ""
+lat <- y
+lon <- x
+
+dat <- data.frame(parcelas, lat, lon, `Vegetation type`)
+
+firefreq <- raster("./fire_frequency/mapbiomas-brazil-collection-10-parnadachapadadosveadeiros-1985_2018.tif")
+
+leaflet(options = leafletOptions(minZoom = 0, maxZoom = 18))
+
+colors = colorBin("Reds", domain = NULL, bins = 5, na.color = "transparent")
+
+#pal <- colorNumeric(c("#1c840c", "#847a0c", "#FF0000"), values(firefreq),
+#                    na.color = "transparent")
+
+pal <- colorNumeric(colors, values(firefreq),
+                    na.color = "transparent")
+
+leaflet() %>% addTiles() %>%
+  addRasterImage(firefreq, colors = pal, opacity = 0.8) %>%
+  addLegend(pal = pal, values = values(firefreq),
+            title = "Fire frequency (1985-2018)") %>% 
+  addCircles(lng=dat$lon, lat=dat$lat, fillColor = factor(dat$Vegetation.type))
+
+
